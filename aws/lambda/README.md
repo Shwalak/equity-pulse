@@ -36,6 +36,8 @@ Errors: `401` wrong or missing secret, `400` bad JSON, `413` body over 20 kB, `4
 | `SHARED_SECRET` | A long random string. Paste the same value into the Zap's header. |
 | `BUCKET_NAME` | Your S3 bucket in `ap-southeast-2` |
 
+Also set **Timeout to 15 seconds** and **Memory to 512 MB**. The defaults (3 s, 128 MB) are too small: the first call loads the AWS SDK and times out with a plain "Internal Server Error".
+
 ## Least-privilege execution role
 
 Attach only this inline policy (plus the basic logging policy `AWSLambdaBasicExecutionRole`). Replace `YOUR_BUCKET`.
