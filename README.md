@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Equity Pulse
 
-## Getting Started
+A mobile-first campaign landing page and lead automation pipeline for a home equity offer. Move three sliders, see an illustrative estimate, and leave details to get a follow-up email.
 
-First, run the development server:
+> **Disclaimer:** an independent concept project. Not a lender, not affiliated with any lender, no real rates or offers. Estimates are illustrative (80% combined loan-to-value rule). Use fake test data only.
+
+## What it shows
+
+- **Vercel / Next.js:** App Router landing page, UTM capture, A/B headline (`?v=b`), generated OG image.
+- **Zapier:** webhook-triggered multi-step Zap (Sheet row, Slack alert for hot leads, Gmail follow-up).
+- **AWS:** Lambda Function URL scoring leads and storing raw JSON in S3.
+- **Claude Code / Codex:** built with Claude Code; Codex used for test and review passes.
+
+## Architecture
+
+See [docs/architecture.md](docs/architecture.md) for the diagram, payload and scoring.
+
+## Run locally
 
 ```bash
+npm install
+cp .env.example .env.local   # optionally add ZAPIER_WEBHOOK_URL
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm test && npm run lint && npm run typecheck
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without `ZAPIER_WEBHOOK_URL` the API route logs the lead (email masked) and still returns success.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Import the repo in Vercel, add `ZAPIER_WEBHOOK_URL` (and optionally `NEXT_PUBLIC_SITE_URL`), deploy.
 
-## Learn More
+## Estimate formula
 
-To learn more about Next.js, take a look at the following resources:
+`max(0, 0.80 x homeValue - mortgageBalance)`, rounded to the nearest $1,000.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Credits
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Fonts: Fraunces and DM Sans via Fontsource, SIL Open Font License. Code: MIT.
