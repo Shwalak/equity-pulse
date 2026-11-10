@@ -30,6 +30,21 @@ describe("formFieldsSchema", () => {
     expect(formFieldsSchema.safeParse({ ...validPayload, phone: "abc" }).success).toBe(false);
   });
 
+  it("rejects phone numbers with fewer than 7 digits", () => {
+    for (const phone of ["-------", "(((((((", "( ) ( )"]) {
+      expect(formFieldsSchema.safeParse({ ...validPayload, phone }).success).toBe(false);
+    }
+  });
+
+  it("strips spreadsheet formula prefixes from names and tracking values", () => {
+    const name = formFieldsSchema.safeParse({ ...validPayload, name: '=IMPORTXML("x","y")' });
+    expect(name.success).toBe(true);
+    if (name.success) expect(name.data.name.startsWith("=")).toBe(false);
+    const utm = leadPayloadSchema.safeParse({ ...validPayload, utm_source: "@SUM(A1)" });
+    expect(utm.success).toBe(true);
+    if (utm.success) expect(utm.data.utm_source).toBe("SUM(A1)");
+  });
+
   it("rejects an unknown timeline", () => {
     expect(formFieldsSchema.safeParse({ ...validPayload, timeline: "someday" }).success).toBe(false);
   });

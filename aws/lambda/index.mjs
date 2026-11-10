@@ -32,7 +32,8 @@ function secretMatches(provided, expected) {
 }
 
 function maskEmail(email) {
-  const [user = "", domain = ""] = String(email).split("@");
+  if (typeof email !== "string") return "(none)";
+  const [user = "", domain = ""] = email.split("@");
   return `${user.slice(0, 1)}***@${domain}`;
 }
 
@@ -74,7 +75,8 @@ export const handler = async (event, _context, deps = {}) => {
       Bucket: bucket,
       Key: key,
       ContentType: "application/json",
-      Body: JSON.stringify({ ...lead, score: result.score, tier: result.tier }),
+      // Never trust client-supplied scoring fields: drop them before storing.
+      Body: JSON.stringify({ ...lead, hot: undefined, breakdown: undefined, score: result.score, tier: result.tier }),
     });
   } catch (error) {
     console.error("[lambda] S3 write failed", error?.name, lead.leadId);

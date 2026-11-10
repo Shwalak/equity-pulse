@@ -58,15 +58,28 @@ describe("scoreLead", () => {
     });
     expect(at70.score).toBe(HOT_THRESHOLD);
     expect(at70.hot).toBe(true);
-    const at60 = scoreLead({
+    const at55 = scoreLead({
       ...base,
       estimate: 60_000,
       timeline: "this-quarter",
       phone: undefined,
       email: "bad",
     });
-    expect(at60.score).toBe(55);
-    expect(at60.tier).toBe("standard");
+    expect(at55.score).toBe(55);
+    expect(at55.tier).toBe("standard");
+  });
+
+  it("gives no phone points for junk numbers with fewer than 7 digits", () => {
+    for (const phone of ["-------", "(((((((", "( ) ( )", "123", 5551234567]) {
+      expect(scoreLead({ ...base, phone }).breakdown.phone).toBe(0);
+    }
+    expect(scoreLead({ ...base, phone: "555-0100" }).breakdown.phone).toBe(15);
+  });
+
+  it("coerces a string estimate and ignores negative or NaN equity", () => {
+    expect(scoreLead({ ...base, estimate: "100000" }).breakdown.equity).toBe(30);
+    expect(scoreLead({ ...base, estimate: -5 }).breakdown.equity).toBe(10);
+    expect(scoreLead({ ...base, estimate: "abc" }).breakdown.equity).toBe(10);
   });
 
   it("gives a cold lead the minimum score", () => {
@@ -87,6 +100,12 @@ describe("isValidNonDisposableEmail", () => {
     expect(isValidNonDisposableEmail("a@Mailinator.com")).toBe(false);
     expect(isValidNonDisposableEmail("nope")).toBe(false);
     expect(isValidNonDisposableEmail(undefined)).toBe(false);
+  });
+
+  it("catches subdomains and trailing dots of disposable providers", () => {
+    expect(isValidNonDisposableEmail("x@sub.mailinator.com")).toBe(false);
+    expect(isValidNonDisposableEmail("x@mailinator.com.")).toBe(false);
+    expect(isValidNonDisposableEmail("x@notmailinator.com")).toBe(true);
   });
 });
 
@@ -130,6 +149,46 @@ describe("handler", () => {
     const d = deps();
     expect((await handler(event({ body: "{" }), {}, d)).statusCode).toBe(400);
     expect((await handler(event({ body: "{}" }), {}, d)).statusCode).toBe(422);
+  });
+
+  it("rejects leadIds that are malformed or try to traverse paths", async () => {
+    const d = deps();
+    for (const leadId of ["../../etc/passwd", "short", "has space in it 1234", "a/b/c/d/e/f/g/h"]) {
+      const res = await handler(event({ body: JSON.stringify({ ...base, leadId }) }), {}, d);
+      expect(res.statusCode).toBe(422);
+    }
+    expect(d.put).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized bodies with 413", async () => {
+    const d = deps();
+    const big = JSON.stringify({ ...base, pad: "x".repeat(21_000) });
+    expect((await handler(event({ body: big }), {}, d)).statusCode).toBe(413);
+    expect(d.put).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when no secret is configured", async () => {
+    const d = { ...deps(), secret: undefined };
+    const saved = process.env.SHARED_SECRET;
+    delete process.env.SHARED_SECRET;
+    const res = await handler(event(), {}, d);
+    if (saved !== undefined) process.env.SHARED_SECRET = saved;
+    expect(res.statusCode).toBe(401);
+    expect(d.put).not.toHaveBeenCalled();
+  });
+
+  it("stores under the leadId key and overrides client-supplied scoring fields", async () => {
+    const d = deps();
+    const forged = { ...base, hot: true, breakdown: { equity: 999 }, score: 1, tier: "standard" };
+    await handler(event({ body: JSON.stringify({ ...forged, estimate: 10 }) }), {}, d);
+    const input = d.put.mock.calls[0][0];
+    expect(input.Bucket).toBe("b");
+    expect(input.Key).toMatch(new RegExp(`/${base.leadId}\\.json$`));
+    const stored = JSON.parse(input.Body);
+    expect(stored.hot).toBeUndefined();
+    expect(stored.breakdown).toBeUndefined();
+    expect(stored.score).not.toBe(1);
+    expect(stored.tier).toBe("hot");
   });
 
   it("returns 502 when S3 fails", async () => {

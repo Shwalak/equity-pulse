@@ -2,12 +2,23 @@ import { z } from "zod";
 import { BALANCE_RANGE, GOAL_IDS, HOME_VALUE_RANGE, TIMELINE_IDS } from "./estimate";
 
 /** Fields the visitor types into the form. Used on the client and the server. */
+/**
+ * Spreadsheets treat a leading = + - @ as a formula. Strip those from free-text
+ * fields so a hostile name cannot run a formula when the lead lands in a Sheet.
+ */
+const stripFormulaPrefix = (v: string) => v.replace(/^[=+\-@\t\r\s]+/, "");
+
 export const formFieldsSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Please enter your name")
-    .max(80, "That name is a bit long"),
+    .transform(stripFormulaPrefix)
+    .pipe(
+      z
+        .string()
+        .min(2, "Please enter your name")
+        .max(80, "That name is a bit long"),
+    ),
   email: z
     .string()
     .trim()
@@ -18,14 +29,14 @@ export const formFieldsSchema = z.object({
     .trim()
     .max(20, "Phone number is too long")
     .refine(
-      (v) => v === "" || /^\+?[0-9 ()-]{7,20}$/.test(v),
+      (v) => v === "" || (/^\+?[0-9 ()-]{7,20}$/.test(v) && v.replace(/\D/g, "").length >= 7),
       "Enter a valid phone number, or leave it blank",
     )
     .optional(),
   timeline: z.enum(TIMELINE_IDS, { error: "Choose a timeline" }),
 });
 
-const optionalTracking = z.string().trim().max(100).optional();
+const optionalTracking = z.string().trim().max(100).transform(stripFormulaPrefix).optional();
 
 /** Full payload accepted by POST /api/lead. */
 export const leadPayloadSchema = formFieldsSchema.extend({

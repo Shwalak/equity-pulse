@@ -20,8 +20,18 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** True for a well-formed email whose domain is not a known throwaway provider. */
 export function isValidNonDisposableEmail(email) {
   if (typeof email !== "string" || !EMAIL_PATTERN.test(email.trim())) return false;
-  const domain = email.trim().toLowerCase().split("@")[1];
-  return !DISPOSABLE_DOMAINS.has(domain);
+  // Normalise (trailing dot) and check the domain and every parent domain,
+  // so sub.mailinator.com is caught as well as mailinator.com.
+  const labels = email.trim().toLowerCase().split("@")[1].replace(/\.$/, "").split(".");
+  for (let i = 0; i < labels.length - 1; i += 1) {
+    if (DISPOSABLE_DOMAINS.has(labels.slice(i).join("."))) return false;
+  }
+  return true;
+}
+
+/** True when the phone has at least 7 digits, so "-------" earns nothing. */
+export function hasUsablePhone(phone) {
+  return typeof phone === "string" && phone.replace(/\D/g, "").length >= 7;
 }
 
 /**
@@ -42,7 +52,7 @@ export function scoreLead(lead) {
   const timelinePoints =
     lead.timeline === "this-month" ? 25 : lead.timeline === "this-quarter" ? 15 : 0;
 
-  const phonePoints = typeof lead.phone === "string" && lead.phone.trim() !== "" ? 15 : 0;
+  const phonePoints = hasUsablePhone(lead.phone) ? 15 : 0;
 
   const emailPoints = isValidNonDisposableEmail(lead.email) ? 10 : 0;
 

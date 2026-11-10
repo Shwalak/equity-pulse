@@ -67,6 +67,11 @@ body::after {
   border-radius: 6px;
 }
 
+/* On dark surfaces an ink outline vanishes, so use a light one. */
+.bg-ink :focus-visible {
+  outline-color: var(--color-cream);
+}
+
 /* ---------- Range sliders ---------- */
 .slider {
   -webkit-appearance: none;

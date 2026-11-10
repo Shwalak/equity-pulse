@@ -7,9 +7,9 @@ flowchart LR
   C --> D[AWS Lambda Function URL]
   D -->|raw JSON| E[(S3 bucket)]
   D -->|score + tier| C
-  C --> F[Google Sheet row]
-  C -->|hot leads only| G[Slack alert]
-  C --> H[Personalised Gmail email]
+  C --> F[Google Sheet row: every lead]
+  C -->|score >= 70| G[Slack alert]
+  C -->|score >= 70| H[Personalised Gmail email]
 ```
 
 ## Lead payload
@@ -23,7 +23,7 @@ flowchart LR
 | Estimated equity $100k or more / $50k or more / below | 30 / 20 / 10 |
 | Goal renovation or debt consolidation / other | 20 / 10 |
 | Timeline this month / this quarter | 25 / 15 |
-| Phone provided | 15 |
+| Phone with at least 7 digits | 15 |
 | Valid, non-disposable email | 10 |
 
 ## Safety choices

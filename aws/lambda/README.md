@@ -14,7 +14,7 @@ Scores a lead, writes the raw JSON to S3, and returns `score` and `tier`. Zapier
 | Estimated equity >= $100k / >= $50k / below | 30 / 20 / 10 |
 | Goal: renovation or debt consolidation / other | 20 / 10 |
 | Timeline: this month / this quarter / later | 25 / 15 / 0 |
-| Phone provided | 15 |
+| Phone with at least 7 digits | 15 |
 | Valid, non-disposable email | 10 |
 
 ## Request and response

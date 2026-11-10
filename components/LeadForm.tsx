@@ -63,12 +63,18 @@ export function LeadForm({ goal, homeValue, balance, estimate, tracking }: Props
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 422 && data?.fieldErrors) {
-        setErrors(
-          Object.fromEntries(
-            Object.entries(data.fieldErrors as Record<string, string[]>).map(([k, v]) => [k, v[0]]),
-          ),
-        );
-        setStatus("idle");
+        // The API sends one message string per field. Show the ones this form renders,
+        // and a general message if the problem is in a field the visitor cannot see.
+        const shown = ["name", "email", "phone", "timeline"];
+        const entries = Object.entries(data.fieldErrors as Record<string, string>);
+        const visible = entries.filter(([k]) => shown.includes(k));
+        setErrors(Object.fromEntries(visible));
+        if (visible.length === 0) {
+          setStatus("error");
+          setMessage("Something about that request looked off. Please refresh the page and try again.");
+        } else {
+          setStatus("idle");
+        }
         return;
       }
       if (!res.ok || !data?.ok) throw new Error("request failed");

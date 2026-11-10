@@ -18,9 +18,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Payload too large" }, { status: 413 });
   }
 
+  // The declared length can be missing or false, so measure what actually arrived.
   let body: unknown;
   try {
-    body = await request.json();
+    const text = await request.text();
+    if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) {
+      return NextResponse.json({ ok: false, error: "Payload too large" }, { status: 413 });
+    }
+    body = JSON.parse(text);
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
