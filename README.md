@@ -45,7 +45,7 @@ A lead is **hot at 70 or more**. The weights favour intent and reachability over
 | Estimated equity $100k or more / $50k or more / below | 30 / 20 / 10 |
 | Goal: renovation or debt consolidation / other | 20 / 10 |
 | Timeline: this month / this quarter / later | 25 / 15 / 0 |
-| Phone number provided | 15 |
+| Phone with at least 7 digits | 15 |
 | Valid, non-disposable email | 10 |
 
 ## Design decisions
