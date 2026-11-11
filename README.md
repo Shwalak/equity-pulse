@@ -48,12 +48,17 @@ A lead is **hot at 70 or more**. The weights favour intent and reachability over
 | Phone with at least 7 digits | 15 |
 | Valid, non-disposable email | 10 |
 
+## Weekly report
+
+A second Zap runs every Monday at 9:00 (Asia/Kolkata). It reads one summary row from the **Report** tab of the Google Sheet (formulas for total leads, hot leads, hot rate, average score, leads in the last 7 days and top source, plus a lead and score breakdown by A/B variant) and posts it to Slack. Reporting comes from the same Sheet the leads land in, so the numbers cannot drift from the source.
+
 ## Design decisions
 
 - **Shared secret, no API Gateway.** The Lambda Function URL is public but rejects requests without the `x-equity-pulse-secret` header, compared in constant time. Simpler and cheaper than API Gateway for a single caller.
 - **Least-privilege IAM.** The Lambda runs as a dedicated role that can only `s3:PutObject` under `leads/*` in one bucket. No long-lived AWS keys anywhere.
 - **Failure isolation.** The website never depends on Zapier or AWS being up. A failed webhook is logged and the visitor still succeeds.
 - **PII hygiene.** Emails are masked in logs. Demo data is fake.
+- **One orchestrator, one job per tool.** Zapier is the only place workflows live. AWS holds only the scoring logic and raw record, which Zapier cannot do safely. The Sheet is the human-readable log and report source.
 - **Server-side truth.** Validation and the estimate are computed on the server, never trusted from the browser.
 
 ## Known limitations and next steps

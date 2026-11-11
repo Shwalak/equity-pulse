@@ -29,3 +29,7 @@ flowchart LR
 ## Safety choices
 
 Honeypot field, server-side validation, estimate recomputed on the server, 10 kB body cap, webhook call with an 8 second timeout inside try/catch (the visitor still sees success if the webhook is down), emails masked in logs, no long-lived AWS keys.
+
+## Weekly report
+
+Second Zap: Schedule (Mon 9:00 Asia/Kolkata) -> Google Sheets lookup of the `Report` tab summary row -> Slack message in #hot-leads.
