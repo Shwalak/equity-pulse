@@ -30,7 +30,7 @@ A short standard procedure so changes to the page or the automation are checked 
 - [ ] `utm_source`, `utm_campaign`, `variant` match the URL used (`?utm_source=...&v=b`)
 
 ## 5. Analytics
-- [ ] GA4 Realtime shows the visit, `form_start` and `generate_lead` events.
+- [ ] GA4 Realtime shows the visit, `lead_form_start` and `generate_lead` events.
 - [ ] No name, email or phone appears in any event parameter.
 
 ## 6. After the change

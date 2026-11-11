@@ -121,7 +121,7 @@ export function LeadForm({ goal, homeValue, balance, estimate, tracking }: Props
       onFocusCapture={() => {
         if (!started.current) {
           started.current = true;
-          trackEvent("form_start", { goal, variant: tracking.variant });
+          trackEvent("lead_form_start", { goal, variant: tracking.variant });
         }
       }}
       noValidate

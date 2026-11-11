@@ -72,7 +72,7 @@ Fixed after the review: server-side form errors rendering correctly, keyboard fo
 
 ## Analytics and QA
 
-- **Google Analytics 4** loads only when `NEXT_PUBLIC_GA_ID` is set. Events: `form_start` and `generate_lead` (value = estimate, plus goal, timeline and variant). No personal data is ever sent to analytics.
+- **Google Analytics 4** loads only when `NEXT_PUBLIC_GA_ID` is set. Events: `lead_form_start` and `generate_lead` (value = estimate, plus goal, timeline and variant). No personal data is ever sent to analytics.
 - **QA checklist:** [docs/qa-checklist.md](docs/qa-checklist.md) is the standard procedure for checking the page and the pipeline, with a table of test leads and expected results.
 
 ## Tech
