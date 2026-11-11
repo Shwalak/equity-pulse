@@ -2,6 +2,30 @@
 
 export const HOT_THRESHOLD = 70;
 
+const GOAL_LABELS = {
+  renovation: "renovation",
+  "debt-consolidation": "debt consolidation",
+  tuition: "tuition",
+  "rainy-day": "rainy-day fund",
+};
+// Worded to read naturally in "discuss your ___ timeline".
+const TIMELINE_LABELS = {
+  "this-month": "one-month",
+  "this-quarter": "three-month",
+  later: "flexible",
+};
+
+/** Human-friendly strings for the follow-up email, so Zapier needs no formatting steps. */
+export function friendlyFields(lead) {
+  const n = Number(lead?.estimate);
+  const amount = Number.isFinite(n) && n > 0 ? n : 0;
+  return {
+    estimateFormatted: `$${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
+    goalLabel: GOAL_LABELS[lead?.goal] ?? "your goal",
+    timelineLabel: TIMELINE_LABELS[lead?.timeline] ?? "your timeline",
+  };
+}
+
 const DISPOSABLE_DOMAINS = new Set([
   "mailinator.com",
   "guerrillamail.com",

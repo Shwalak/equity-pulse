@@ -3,7 +3,7 @@
 //   SHARED_SECRET  value Zapier must send in the x-equity-pulse-secret header
 //   BUCKET_NAME    S3 bucket for raw lead JSON (same region as the function)
 import { timingSafeEqual } from "node:crypto";
-import { scoreLead } from "./score.mjs";
+import { friendlyFields, scoreLead } from "./score.mjs";
 
 // The AWS SDK v3 ships inside the Lambda Node.js runtime, so it is imported lazily.
 // That keeps local tests free of the SDK: they inject their own `put` function.
@@ -97,6 +97,7 @@ export const handler = async (event, _context, deps = {}) => {
     tier: result.tier,
     hot: result.hot,
     breakdown: result.breakdown,
+    ...friendlyFields(lead),
     s3Key: key,
   });
 };

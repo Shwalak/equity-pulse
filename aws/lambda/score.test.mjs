@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { handler } from "./index.mjs";
-import { HOT_THRESHOLD, isValidNonDisposableEmail, scoreLead } from "./score.mjs";
+import { HOT_THRESHOLD, friendlyFields, isValidNonDisposableEmail, scoreLead } from "./score.mjs";
 
 const base = {
   leadId: "11111111-2222-3333-4444-555555555555",
@@ -109,6 +109,25 @@ describe("isValidNonDisposableEmail", () => {
   });
 });
 
+describe("friendlyFields", () => {
+  it("formats the estimate and labels", () => {
+    expect(friendlyFields({ estimate: 1234567, goal: "debt-consolidation", timeline: "this-month" })).toEqual({
+      estimateFormatted: "$1,234,567",
+      goalLabel: "debt consolidation",
+      timelineLabel: "one-month",
+    });
+  });
+
+  it("falls back safely on bad input", () => {
+    expect(friendlyFields({ estimate: "abc", goal: "x", timeline: undefined })).toEqual({
+      estimateFormatted: "$0",
+      goalLabel: "your goal",
+      timelineLabel: "your timeline",
+    });
+    expect(friendlyFields(undefined).estimateFormatted).toBe("$0");
+  });
+});
+
 describe("handler", () => {
   const secret = "test-secret";
   const event = (over = {}) => ({
@@ -133,7 +152,15 @@ describe("handler", () => {
     const res = await handler(event(), {}, d);
     const body = JSON.parse(res.body);
     expect(res.statusCode).toBe(200);
-    expect(body).toMatchObject({ ok: true, score: 100, tier: "hot", hot: true });
+    expect(body).toMatchObject({
+      ok: true,
+      score: 100,
+      tier: "hot",
+      hot: true,
+      estimateFormatted: "$120,000",
+      goalLabel: "renovation",
+      timelineLabel: "one-month",
+    });
     expect(d.put).toHaveBeenCalledTimes(1);
     expect(body.s3Key).toMatch(/^leads\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/);
   });
