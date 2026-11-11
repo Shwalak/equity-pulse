@@ -65,6 +65,11 @@ Found in the review pass and left as deliberate trade-offs for a demo:
 
 Fixed after the review: server-side form errors rendering correctly, keyboard focus visible on the dark form, body size measured on the actual bytes, junk phone numbers no longer earning points, spreadsheet-formula prefixes stripped from free text, scoring fields in S3 not client-controllable, and disposable-domain matching covering subdomains.
 
+## Analytics and QA
+
+- **Google Analytics 4** loads only when `NEXT_PUBLIC_GA_ID` is set. Events: `form_start` and `generate_lead` (value = estimate, plus goal, timeline and variant). No personal data is ever sent to analytics.
+- **QA checklist:** [docs/qa-checklist.md](docs/qa-checklist.md) is the standard procedure for checking the page and the pipeline, with a table of test leads and expected results.
+
 ## Tech
 
 Next.js 16 (App Router), TypeScript, Tailwind v4, Framer Motion, Zod, Vitest. AWS Lambda (Node.js 22) with a Function URL and S3. Zapier for orchestration. Hosted on Vercel.

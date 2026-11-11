@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { TIMELINES, type GoalId, type TimelineId } from "@/lib/estimate";
 import { formFieldsSchema } from "@/lib/lead-schema";
 import type { Tracking } from "@/lib/tracking";
+import { trackEvent } from "@/lib/analytics";
 
 type Props = {
   goal: GoalId;
@@ -24,6 +25,7 @@ export function LeadForm({ goal, homeValue, balance, estimate, tracking }: Props
   const [errors, setErrors] = useState<Errors>({});
   const [ref, setRef] = useState("");
   const [message, setMessage] = useState("");
+  const started = useRef(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -80,6 +82,13 @@ export function LeadForm({ goal, homeValue, balance, estimate, tracking }: Props
       if (!res.ok || !data?.ok) throw new Error("request failed");
       setRef(String(data.leadId ?? "").slice(0, 8).toUpperCase());
       setStatus("done");
+      trackEvent("generate_lead", {
+        value: estimate,
+        currency: "USD",
+        goal,
+        timeline: parsed.data.timeline,
+        variant: tracking.variant,
+      });
     } catch {
       setStatus("error");
       setMessage("We could not send that. Check your connection and try again.");
@@ -89,10 +98,10 @@ export function LeadForm({ goal, homeValue, balance, estimate, tracking }: Props
   if (status === "done") {
     return (
       <div className="rounded-3xl border-2 border-ink bg-mint p-8" role="status">
-        <h3 className="font-display text-3xl font-semibold">Got it. Check your inbox.</h3>
+        <h3 className="font-display text-3xl font-semibold">Got it. Your request is in.</h3>
         <p className="mt-3 max-w-prose">
-          Your estimate of <strong>{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(estimate)}</strong> is on its
-          way, along with next steps.
+          Your estimate of <strong>{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(estimate)}</strong> is
+          saved with your details. Priority requests get a personal email within minutes.
         </p>
         {ref && <p className="mt-4 text-sm">Reference: <span className="font-semibold tabular-nums">{ref}</span></p>}
       </div>
@@ -109,6 +118,12 @@ export function LeadForm({ goal, homeValue, balance, estimate, tracking }: Props
   return (
     <form
       onSubmit={onSubmit}
+      onFocusCapture={() => {
+        if (!started.current) {
+          started.current = true;
+          trackEvent("form_start", { goal, variant: tracking.variant });
+        }
+      }}
       noValidate
       className="rounded-3xl border-2 border-ink bg-ink p-6 text-cream sm:p-8"
       aria-labelledby="form-title"
